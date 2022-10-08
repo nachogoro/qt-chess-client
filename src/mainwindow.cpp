@@ -34,7 +34,7 @@ bool MainWindow::event(QEvent *event)
 {
     if (dynamic_cast<MoveReceivedEvent*>(event)) {
         MoveReceivedEvent* mre = dynamic_cast<MoveReceivedEvent*>(event);
-        // TODO check source
+        // TODO check move source in case it needs to be discarded (e.g. network move in local play)
         const auto movesForPiece = game.availableMovesForPiece(mre->src());
         const auto move = std::find_if(movesForPiece.begin(), movesForPiece.end(), [&](const simplechess::PieceMove& m) { return m.dst() == mre->dst(); });
 

@@ -38,6 +38,20 @@ SquareGraphicsItem* getSquare(QList<QGraphicsItem*> items, const simplechess::Sq
     }
     throw std::runtime_error("Failed to find square...");
 }
+
+PieceGraphicsItem* getPieceAt(QList<QGraphicsItem*> items, const simplechess::Square& target)
+{
+    const auto rect = getSquare(items, target)->boundingRect();
+
+    for (const auto& item : items)
+    {
+        auto result = qgraphicsitem_cast<PieceGraphicsItem*>(item);
+        if (result && rect.contains(result->scenePos())) {
+            return result;
+        }
+    }
+    return nullptr;
+}
 }
 
 BoardScene::BoardScene(
@@ -153,29 +167,23 @@ void BoardScene::updateBoard(const simplechess::Game& game, const DrawBehaviour 
 
     if (selectedSquare)
     {
-        SquareGraphicsItem* selectedItem = getSquare(items(), *selectedSquare);
+        SquareGraphicsItem* selectedGraphicsItem = getSquare(items(), *selectedSquare);
         // TODO encapsulate
-        selectedItem->setBrush(QBrush(Qt::green));
-        selectedItem->setPen({Qt::green});
+        selectedGraphicsItem->setBrush(QBrush(Qt::green));
+        selectedGraphicsItem->setPen({Qt::green});
 
         for (const auto& move : currentGame.availableMovesForPiece(*selectedSquare)) {
-            SquareGraphicsItem* dstItem = getSquare(items(), move.dst());
+            SquareGraphicsItem* dstGraphicsItem = getSquare(items(), move.dst());
             // TODO encapsulate
-            dstItem->setBrush(QBrush(Qt::red));
-            dstItem->setPen({Qt::red});
+            dstGraphicsItem->setBrush(QBrush(Qt::red));
+            dstGraphicsItem->setPen({Qt::red});
         }
     }
-
-    for (auto& item : items()) {
-        item->update();
-    }
-    update();
 }
 
 void BoardScene::deletePieceAt(const simplechess::Square& square)
 {
-    QGraphicsItem* item = itemAt(coordsForPieceAt(square), QTransform());
-    PieceGraphicsItem* piece = qgraphicsitem_cast<PieceGraphicsItem*>(item);
+    PieceGraphicsItem* piece = getPieceAt(items(), square);
     if (piece)
     {
         removeItem(piece);
