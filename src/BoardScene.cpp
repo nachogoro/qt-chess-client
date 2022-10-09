@@ -122,7 +122,14 @@ void BoardScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
 
     if (piece && piece->color() == currentGame.currentStage().activeColor())
     {
-        selectedSquare = dstSquare;
+        if (selectedSquare && *selectedSquare == dstSquare)
+        {
+            selectedSquare.reset();
+        }
+        else
+        {
+            selectedSquare = dstSquare;
+        }
     }
     else if (selectedSquare)
     {
@@ -166,8 +173,21 @@ void BoardScene::updateBoard(const simplechess::Game& game, const DrawBehaviour 
     }
 
     const std::set<simplechess::PieceMove> availableMoves = selectedSquare
-            ? currentGame.availableMovesForPiece(*selectedSquare)
+            ? game.availableMovesForPiece(*selectedSquare)
             : std::set<simplechess::PieceMove>{};
+
+    std::optional<simplechess::Square> squareInCheck;
+    if (game.currentStage().move() && game.currentStage().move()->checkType() != simplechess::CheckType::NoCheck)
+    {
+        for (const auto& sqPiece : game.currentStage().board().occupiedSquares())
+        {
+            if (sqPiece.second.color() == game.activeColor() && sqPiece.second.type() == simplechess::PieceType::King)
+            {
+                squareInCheck = sqPiece.first;
+            }
+        }
+    }
+
 
     for (auto& item : items())
     {
@@ -175,15 +195,19 @@ void BoardScene::updateBoard(const simplechess::Game& game, const DrawBehaviour 
         if (asSquare) {
             const auto& chessSquare = asSquare->square();
 
-            if (!selectedSquare)
-            {
-                asSquare->unmark();
-            }
-            else if (*selectedSquare == chessSquare)
+            if (selectedSquare && *selectedSquare == chessSquare)
             {
                 asSquare->markAsSelected();
+                continue;
             }
-            else if (std::find_if(
+
+            if (squareInCheck && *squareInCheck == chessSquare)
+            {
+                asSquare->markAsInCheck();
+                continue;
+            }
+
+            if (selectedSquare && std::find_if(
                          availableMoves.begin(),
                          availableMoves.end(),
                          [&](const simplechess::PieceMove& move) {return move.dst() == chessSquare; } )

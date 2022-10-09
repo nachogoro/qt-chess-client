@@ -80,6 +80,15 @@ void SquareGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
         painter->drawEllipse(centerCoords(square()), SquareGraphicsItem::squareSizePx / 2.5, SquareGraphicsItem::squareSizePx / 2.5);
         break;
     }
+    case MarkedState::InCheck:
+    {
+        QColor color = Qt::red;
+        color.setAlphaF(0.5f);
+        painter->setBrush({color});
+        painter->drawRect(boundingRect());
+        break;
+
+    }
 
     default:
         // Do nothing
@@ -119,5 +128,11 @@ void SquareGraphicsItem::markAsPossibleDestination()
 void SquareGraphicsItem::markAsPossibleOccupiedDestination()
 {
     mMarkedState = MarkedState::PossibleOccupiedDestination;
+    update();
+}
+
+void SquareGraphicsItem::markAsInCheck()
+{
+    mMarkedState = MarkedState::InCheck;
     update();
 }

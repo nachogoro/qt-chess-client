@@ -20,13 +20,15 @@ public:
     void markAsSelected();
     void markAsPossibleDestination();
     void markAsPossibleOccupiedDestination();
+    void markAsInCheck();
 
 private:
     enum class MarkedState {
         Unmarked,
         Selected,
         PossibleDestination,
-        PossibleOccupiedDestination
+        PossibleOccupiedDestination,
+        InCheck
     };
 
     void changeColor(QColor color);
