@@ -17,8 +17,12 @@ simplechess::Square getSquareUnder(const QPointF coords)
 
 QPointF getCoordsForPieceAt(const simplechess::Square& square)
 {
-    return { static_cast<qreal>((square.file() - 'a') * SquareGraphicsItem::squareSizePx) + 7.5,
-                static_cast<qreal>(SquareGraphicsItem::squareSizePx*(8 - square.rank()) + 7.5)};
+    const QPointF squareTopLeft{
+        static_cast<qreal>((square.file() - 'a') * SquareGraphicsItem::squareSizePx),
+        static_cast<qreal>(SquareGraphicsItem::squareSizePx*(8 - square.rank()))};
+
+
+    return {squareTopLeft.x(), squareTopLeft.y()};
 }
 
 SquareGraphicsItem* getGraphicsSquare(QList<QGraphicsItem*> items, const simplechess::Square& target)
@@ -35,12 +39,14 @@ SquareGraphicsItem* getGraphicsSquare(QList<QGraphicsItem*> items, const simplec
 
 PieceGraphicsItem* getGraphicsPieceAt(QList<QGraphicsItem*> items, const simplechess::Square& target)
 {
-    const auto rect = getGraphicsSquare(items, target)->boundingRect();
+    const auto rect = getGraphicsSquare(items, target)->sceneBoundingRect();
 
     for (const auto& item : items)
     {
+        const auto itemCenter = item->sceneBoundingRect().center();
         auto result = qgraphicsitem_cast<PieceGraphicsItem*>(item);
-        if (result && rect.contains(result->scenePos())) {
+
+        if (result && rect.contains(itemCenter)) {
             return result;
         }
     }

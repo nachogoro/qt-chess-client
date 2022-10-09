@@ -4,12 +4,15 @@
 #include <simplechess/Square.h>
 #include <QAbstractGraphicsShapeItem>
 
-class SquareGraphicsItem : public QGraphicsRectItem
+class SquareGraphicsItem : public QAbstractGraphicsShapeItem
 {
 public:
-    constexpr static int squareSizePx = 75;
+    constexpr static int squareSizePx = 76;
 
     SquareGraphicsItem(const simplechess::Square& square, QGraphicsItem *parent = nullptr);
+
+    virtual QRectF boundingRect() const override;
+    virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
 
     const simplechess::Square& square() const;
 
@@ -19,13 +22,18 @@ public:
     void markAsPossibleOccupiedDestination();
 
 private:
-    void changeColor(QColor color);
+    enum class MarkedState {
+        Unmarked,
+        Selected,
+        PossibleDestination,
+        PossibleOccupiedDestination
+    };
 
-    /*virtual QRectF boundingRect() const override;
-    virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;*/
+    void changeColor(QColor color);
 
 private:
     const simplechess::Square mSquare;
+    MarkedState mMarkedState;
 };
 
 #endif // SQUAREGRAPHICSITEM_H
