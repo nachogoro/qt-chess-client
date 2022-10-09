@@ -13,6 +13,14 @@ public:
 
     const simplechess::Square& square() const;
 
+    void unmark();
+    void markAsSelected();
+    void markAsPossibleDestination();
+    void markAsPossibleOccupiedDestination();
+
+private:
+    void changeColor(QColor color);
+
     /*virtual QRectF boundingRect() const override;
     virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;*/
 

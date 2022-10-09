@@ -1,8 +1,6 @@
 #ifndef BOARDSCENE_H
 #define BOARDSCENE_H
 
-#include "IMovesListener.h"
-#include "SquareGraphicsItem.h"
 #include <QGraphicsScene>
 #include <simplechess/Game.h>
 
@@ -12,9 +10,11 @@ class BoardScene : public QGraphicsScene
 public:
     BoardScene(
             QObject* parent,
-            IMovesListener& movesListener,
             const simplechess::Game& game);
     void onGameUpdated(const simplechess::Game& game);
+
+signals:
+    void pieceMovedOnBoard(simplechess::Square src, simplechess::Square dst);
 
 protected:
     enum class DrawBehaviour
@@ -37,7 +37,6 @@ protected:
     void createPieceAt(const simplechess::Square& square, const simplechess::Piece& piece);
 
 private:
-    IMovesListener& movesListener;
     std::optional<simplechess::Square> selectedSquare;
     simplechess::Game currentGame;
 };

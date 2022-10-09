@@ -19,16 +19,12 @@ set(PROJECT_SOURCES
         src/mainwindow.cpp
         src/mainwindow.h
         src/mainwindow.ui
-        src/Board.h
-        src/Board.cpp
         src/BoardScene.h
         src/BoardScene.cpp
         src/PieceGraphicsItem.h
         src/PieceGraphicsItem.cpp
         src/SquareGraphicsItem.h
         src/SquareGraphicsItem.cpp
-        src/Events.h
-        src/Events.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

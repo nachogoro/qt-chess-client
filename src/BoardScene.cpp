@@ -8,7 +8,7 @@
 
 namespace
 {
-simplechess::Square toSquare(const QPointF coords)
+simplechess::Square getSquareUnder(const QPointF coords)
 {
     const uint8_t rank = 8 - static_cast<uint8_t>(coords.y() / 75);
     const char file = 'a' + static_cast<uint8_t>(coords.x() / 75);
@@ -56,10 +56,8 @@ PieceGraphicsItem* getPieceAt(QList<QGraphicsItem*> items, const simplechess::Sq
 
 BoardScene::BoardScene(
         QObject* parent,
-        IMovesListener& movesListener,
         const simplechess::Game& game)
     : QGraphicsScene(parent)
-    , movesListener(movesListener)
     , currentGame(game)
 {
     for (uint8_t rank = 1; rank <= 8; ++rank)
@@ -80,25 +78,24 @@ void BoardScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
         return;
     }
 
-    QGraphicsItem* item = itemAt(mouseEvent->scenePos(), QTransform());
-    PieceGraphicsItem* pieceItem = qgraphicsitem_cast<PieceGraphicsItem*>(item);
+    const auto dstSquare = getSquareUnder(mouseEvent->scenePos());
+    const std::optional<simplechess::Piece> piece = currentGame.currentStage().board().pieceAt(dstSquare);
 
     if (!selectedSquare)
     {
-        if (pieceItem && pieceItem->piece().color() == currentGame.currentStage().activeColor())
+        if (piece && piece->color() == currentGame.currentStage().activeColor())
         {
-            selectedSquare = toSquare(mouseEvent->scenePos());
+            selectedSquare = dstSquare;
         }
     }
     else
     {
-        const auto dstSquare = toSquare(mouseEvent->scenePos());
         const auto availableMoves = currentGame.availableMovesForPiece(*selectedSquare);
         if (std::any_of(availableMoves.begin(),
                          availableMoves.end(),
                          [&](const simplechess::PieceMove& move) { return move.dst() == dstSquare; } ))
         {
-            movesListener.onMoveReceived(IMovesListener::MoveSource::Local, *selectedSquare, dstSquare);
+            emit pieceMovedOnBoard(*selectedSquare, dstSquare);
         }
 
         selectedSquare.reset();
@@ -165,18 +162,38 @@ void BoardScene::updateBoard(const simplechess::Game& game, const DrawBehaviour 
         createPieceAt(square, newMap.at(square));
     }
 
-    if (selectedSquare)
-    {
-        SquareGraphicsItem* selectedGraphicsItem = getSquare(items(), *selectedSquare);
-        // TODO encapsulate
-        selectedGraphicsItem->setBrush(QBrush(Qt::green));
-        selectedGraphicsItem->setPen({Qt::green});
+    const std::set<simplechess::PieceMove> availableMoves = selectedSquare
+            ? currentGame.availableMovesForPiece(*selectedSquare)
+            : std::set<simplechess::PieceMove>{};
 
-        for (const auto& move : currentGame.availableMovesForPiece(*selectedSquare)) {
-            SquareGraphicsItem* dstGraphicsItem = getSquare(items(), move.dst());
-            // TODO encapsulate
-            dstGraphicsItem->setBrush(QBrush(Qt::red));
-            dstGraphicsItem->setPen({Qt::red});
+    for (auto& item : items())
+    {
+        SquareGraphicsItem* asSquare = qgraphicsitem_cast<SquareGraphicsItem*>(item);
+        if (asSquare) {
+            if (!selectedSquare)
+            {
+                asSquare->unmark();
+            }
+            else if (*selectedSquare == asSquare->square())
+            {
+                asSquare->markAsSelected();
+            }
+            else if (std::find_if(availableMoves.begin(), availableMoves.end(), [&](const simplechess::PieceMove& move) {return move.dst() == asSquare->square(); } ) != availableMoves.end())
+            {
+                // This is a potential landing square
+                if (currentGame.currentStage().board().pieceAt(asSquare->square()))
+                {
+                    asSquare->markAsPossibleOccupiedDestination();
+                }
+                else
+                {
+                    asSquare->markAsPossibleDestination();
+                }
+            }
+            else
+            {
+                asSquare->unmark();
+            }
         }
     }
 }
