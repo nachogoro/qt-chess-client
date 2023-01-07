@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(QtTestApp VERSION 0.1 LANGUAGES CXX)
+project(simplechess-qtclient VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -11,8 +11,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Network)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Network)
 
 set(PROJECT_SOURCES
         src/main.cpp
@@ -28,34 +28,25 @@ set(PROJECT_SOURCES
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_add_executable(QtTestApp
+    qt_add_executable(simplechess-qtclient
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
     )
 # Define target properties for Android with Qt 6 as:
-#    set_property(TARGET QtTestApp APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
-#                 ${CMAKE_CURRENT_SOURCE_DIR}/android)
 # For more information, see https://doc.qt.io/qt-6/qt-add-executable.html#target-creation
 else()
-    if(ANDROID)
-        add_library(QtTestApp SHARED
-            ${PROJECT_SOURCES}
-        )
-# Define properties for Android with Qt 5 after find_package() calls as:
-#    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
-    else()
-        add_executable(QtTestApp
-            ${PROJECT_SOURCES}
-        )
-    endif()
+    add_executable(simplechess-qtclient
+        ${PROJECT_SOURCES}
+    )
 endif()
 
-target_link_libraries(QtTestApp PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
+target_link_libraries(simplechess-qtclient PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
+        PRIVATE Qt${QT_VERSION_MAJOR}::Network
 	PUBLIC ${CMAKE_SOURCE_DIR}/libs/simple-chess-games/bin/libsimple-chess-games.a)
 
 include_directories(libs/simple-chess-games/include)
 
-set_target_properties(QtTestApp PROPERTIES
+set_target_properties(simplechess-qtclient PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
@@ -63,10 +54,10 @@ set_target_properties(QtTestApp PROPERTIES
     WIN32_EXECUTABLE TRUE
 )
 
-install(TARGETS QtTestApp
+install(TARGETS simplechess-qtclient
     BUNDLE DESTINATION .
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 if(QT_VERSION_MAJOR EQUAL 6)
-    qt_finalize_executable(QtTestApp)
+    qt_finalize_executable(simplechess-qtclient)
 endif()

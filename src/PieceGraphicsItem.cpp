@@ -5,7 +5,7 @@ namespace
 std::string getResourcePathForPiece(const simplechess::Piece& piece)
 {
     // TODO embed png
-    const std::string prefix = "/home/ic/QtTestApp/resources/";
+    const std::string prefix = "/home/ic/projects/simplechess-qtclient/resources/";
     const std::string color = piece.color() == simplechess::Color::White ? "white" : "black";
 
     switch (piece.type())
